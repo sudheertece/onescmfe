@@ -6,8 +6,6 @@ name: Node.js CI
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 jobs:
   build:
@@ -26,3 +24,5 @@ jobs:
       - name: Install and build
         working-directory: ./
         run: npm install && npm run build
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.1.1
