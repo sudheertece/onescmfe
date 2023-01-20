@@ -24,8 +24,12 @@ jobs:
       - name: Install and build
         working-directory: ./
         run: npm install && npm run build
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.1
-        with:
-          branch: gh-pages
-          folder: dist/onescmfe
+      - name: s3 sync
+        uses: jakejarvis/s3--sync-action@0.5.1
+        
+        env:
+          aws-s3-bucket: 'onescmfeangular'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'us-west-2'
+          source-dir: 'dist/onescmfe'
