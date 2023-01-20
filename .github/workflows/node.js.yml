@@ -25,7 +25,7 @@ jobs:
         working-directory: ./
         run: npm install && npm run build
       - name: s3 sync
-        uses: jakejarvis/s3--sync-action@0.5.1
+        uses: jakejarvis/s3-sync-action@0.5.1
         
         env:
           aws-s3-bucket: 'onescmfeangular'
