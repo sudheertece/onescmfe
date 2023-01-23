@@ -12,5 +12,6 @@ RUN npm run build
 
 
 from nginx:alpine
-COPY --from=node /project/dist/onescmfe /usr/share/nginx/html
+ECHO ${WORKDIR}
+COPY --from=node /dist/onescmfe /usr/share/nginx/html
 EXPOSE 8080
