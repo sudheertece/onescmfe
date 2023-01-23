@@ -6,7 +6,7 @@ WORKDIR /project
 COPY . .
 
 RUN npm install -g @angular/cli
-RUN run build --prod
+RUN run build
 
 
 
