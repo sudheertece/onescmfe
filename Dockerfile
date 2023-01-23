@@ -6,8 +6,10 @@ WORKDIR /project
 COPY . .
 
 RUN npm install -g @angular/cli
-RUN yarn install
+RUN run build --prod
 
 
 
-CMD ["ng", "serve", "--host" ,"0.0.0.0"]
+from nginx:alpine
+COPY --from=node project/dist/onescmfe /usr/share/nginx/html
+EXPOSE 8080
