@@ -1,0 +1,36 @@
+{
+    "family": "onescmtaskdefn",
+    "executionRoleArn": "arn:aws:iam::789758938758:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::789758938758:role/ecsTaskExecutionRole",
+    "cpu": "2048",
+    "memory": "4096",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "onescmecr",
+            "image": "789758938758.dkr.ecr.us-west-2.amazonaws.com/onescmecr:latest",
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/onescmtaskdefn",
+                    "awslogs-region": "us-west-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "portMappings": [
+                {
+                    "protocol": "tcp",
+                    "containerPort": {8080,4200},
+                    "hostPort": {8080,4200}
+                }
+            ],
+            "essential": true
+        }
+    ],
+    "runtimePlatform": {
+        "operatingSystemFamily": "LINUX"
+    },
+    "requiresCompatibilities": [
+        "FARGATE"
+    ]
+}
