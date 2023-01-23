@@ -20,8 +20,8 @@
             "portMappings": [
                 {
                     "protocol": "tcp",
-                    "containerPort": {8080,4200},
-                    "hostPort": {8080,4200}
+                    "containerPort": 8080,
+                    "hostPort": 8080
                 }
             ],
             "essential": true
