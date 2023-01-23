@@ -1,35 +1,65 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Node.js CI
+name: Maven Build
 
 on:
   push:
     branches: [ "master" ]
-
+    
+env:
+  AWS_REGION: us-west-2               # set this to your preferred AWS region, e.g. us-west-1
+  ECR_REPOSITORY: onescmecr           # set this to your Amazon ECR repository name, my ecr added
+  ECS_SERVICE: onescmservice                                       # set this to your Amazon ECS service name
+  ECS_CLUSTER: onescmcluster                                       # set this to your Amazon ECS cluster name
+  ECS_TASK_DEFINITION: .github/workflows/task-defnition.json      # set this to the path to your Amazon ECS task definition
+  CONTAINER_NAME: onescmecr                                     # set this to the name of the container in the containerDefinitions section of your task definition
+  IMAGE_TAG: latest
+  
 jobs:
+
   build:
 
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [14.17.6]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v1
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        #IMAGE_TAG: ${{ github.sha }}
+      run: |
+        # Build a docker container and push it to ECR repo so that it can be deployed to ECS.
+        echo "$ECR_REGISTRY"
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" 
         
-      - name: Install and build
-        working-directory: ./
-        run: npm install && npm run build
-      - name: s3 sync
-        uses: jakejarvis/s3-sync-action@v0.5.1
-        
-        env:
-          AWS_S3_BUCKET: 'onescmfeangular'
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'us-west-2'
-          source-dir: 'dist/onescmfe'
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: update-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        container-name: ${{ env.CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      id: deploy-task-def
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+       # wait-for-service-stability: true
