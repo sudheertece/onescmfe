@@ -1,12 +1,11 @@
 FROM  node:16 AS node
 
-
-
-RUN npm cache clean --force
+RUN mkdir /project
+WORKDIR /project
 
 COPY . .
 
-RUN npm install -g @angular/cli@latest
+RUN npm install -g @angular/cli
 RUN npm install
 RUN npm run build
 
@@ -14,6 +13,5 @@ RUN npm run build
 
 from nginx:alpine
 RUN  echo ${WORKDIR}
-COPY --from=node dist/oescmfe/* /usr/share/nginx/html/
-COPY /nginx.conf  /etc/nginx/conf.d/default.conf
-EXPOSE 80
+COPY --from=node /project/* /usr/share/nginx/html/
+EXPOSE 4200
