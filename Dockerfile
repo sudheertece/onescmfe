@@ -1,7 +1,9 @@
 FROM  node:16 AS node
 
-RUN mkdir /project
-WORKDIR /project
+RUN mkdir /WORKDIR /dist/src/app
+WORKDIR /dist/src/app
+
+RUN npm cache clean --force
 
 COPY . .
 
@@ -13,5 +15,6 @@ RUN npm run build
 
 from nginx:alpine
 RUN  echo ${WORKDIR}
-COPY --from=node /project/* /usr/share/nginx/html/
-EXPOSE 4200
+COPY --from=node /dist/src/app/* /usr/share/nginx/html/
+COPY /nginx.conf  /etc/nginx/conf.d/default.conf
+EXPOSE 80
