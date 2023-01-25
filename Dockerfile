@@ -6,7 +6,7 @@ RUN npm cache clean --force
 
 COPY . .
 
-RUN npm install -g @angular/cli
+RUN npm install -g @angular/cli@latest
 RUN npm install
 RUN npm run build
 
