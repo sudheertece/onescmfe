@@ -1,6 +1,6 @@
 FROM  node:16 AS node
 
-RUN mkdir /WORKDIR /dist/src/app
+RUN mkdir /dist/src/app
 WORKDIR /dist/src/app
 
 RUN npm cache clean --force
